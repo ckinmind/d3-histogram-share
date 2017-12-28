@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<head>
+    <meta charset='utf-8'>
+    <style>
+        body {
+            font-family:'avenir next', Arial, sans-serif;
+            font-size: 12px;
+            color: #696969;
+        }
+
+        #vis{
+            margin: 0 auto;
+            width: 900px;
+            height: 500px;
+        }
+
+        .ticks {
+            font-size: 10px;
+        }
+
+
+        .track-overlay {
+            pointer-events: stroke;
+            stroke-width: 50px;
+            stroke: transparent;
+            cursor: crosshair;
+        }
+
+        .drag-layer {
+            cursor: crosshair
+        }
+
+        .handle {
+            fill: #fff;
+            stroke: #000;
+            stroke-opacity: 0.5;
+            stroke-width: 1.25px;
+        }
+    </style>
+</head>
+
+<body>
+<div id='vis'></div>
+<script src='https://d3js.org/d3.v4.min.js'></script>
+<script src='./data3.js'></script>
+<script>
+  const margin = {top:50, right:50, bottom:50, left:50},
+    width = 900 - margin.left - margin.right,
+    height = 500 - margin.top - margin.bottom
+
+  const histHeight = 100
+
+  const parseDate = d3.timeParse('%Y-%m-%d-%H')
+  const formatDateIntoDay = d3.timeFormat('%m月%d')
+
+
+  const startDate = new Date('2017-12-18 00:00:00')
+  const endDate = new Date('2017-12-25 00::00:00')
+  const dateArray = d3.timeDays(startDate, endDate)
+
+  console.log(d3.range(1, 5))
+
+
+//  console.log(dateArray)
+
+  data.forEach(d => {
+    d.date = parseDate(d.date)
+  })
+
+  // 颜色比例尺
+  const colors = d3.scaleOrdinal()
+    .domain(dateArray)
+    .range(['#409ffb', '#85d1ea', '#65cccb', '#77debd', '#6ccb74', '#abdf81', '#fbd340']);
+
+
+  // x轴比例尺
+  const x = d3.scaleTime()
+    .domain([startDate, endDate])
+    .range([0, width])
+    .clamp(true)  // time.clamp - 启用闭合, 意思是如果入参超出定义域，则返回值会直接显示为边界值，查看https://github.com/d3/d3-scale#continuous_clamp
+
+  // 直方图生成器
+  const histogram = d3.histogram()  // histogram 将离散样本分成连续的无重叠的间隔
+    .value(d => d.date)             // histogram.value - 为每个样本指定一个值访问器
+    .domain(x.domain())             // histogram.domain - 指定可观测值的间隔
+//    .thresholds(x.ticks(d3.timeDay)) // histogram.thresholds - 指定值划分成不同箱的方法
+    .thresholds(dateArray) // histogram.thresholds - 指定值划分成不同箱的方法
+     console.log(x.domain())
+
+//  console.log('#############')
+//  console.log(x.ticks())
+//  console.log(x.ticks(d3.timeDay))
+//  console.log('#############')
+
+//  console.log('*******', x.domain())
+
+  const bins = histogram(data)
+
+//  console.log(bins)
+
+  // y轴比例尺
+  const y = d3.scaleLinear()
+    .domain([0, d3.max(bins, d => d.length)])
+    .range([0, histHeight])
+
+
+  const svg = d3.select('#vis')
+    .append('svg')
+    .attr('width', width + margin.left + margin.right)
+    .attr('height', height + margin.top + margin.bottom)
+
+  // 直方图容器g
+  const hist = svg.append('g')
+    .attr('class', 'histogram')
+    .attr('transform', `translate(${margin.left}, ${margin.top})`)
+
+  // 滑动条容器g
+  const slider = svg.append('g')
+    .attr('class', 'slider')
+    .attr('transform', `translate(${margin.left}, ${margin.top + histHeight})`)
+//    .attr('transform', `translate(${margin.left}, ${margin.top + histHeight + 70})`)
+
+  // 散点图容器g
+  const plot = svg.append('g')
+    .attr('class', 'plot')
+    .attr('transform', `translate(${margin.left}, ${margin.top + histHeight + 50})`)
+  //    .attr('transform', `translate(${margin.left}, ${margin.top + 100})`)
+
+
+  drawHistogram() // 绘制直方部分
+  drawPlot(data) // 绘制散点部分
+  drawSlider() // 绘制滑动条部分
+
+
+  function drawHistogram() {
+
+    const bar = hist.selectAll('.bar')
+      .data(bins)
+      .enter()
+      .append('g')
+      .attr('transform', d => `translate(${x(d.x0)}, ${histHeight - y(d.length)})`)
+
+    bar.append('rect')
+      .attr('class', 'bar')
+      .attr('width', d => x(d.x1) - x(d.x0) - 1) // 1是柱子间的间隔
+      .attr('height', d => y(d.length))
+      .attr('fill', d => colors(d.x0))
+
+    bar.append('text')
+      .attr('dy', '.75em')
+      .attr('y', '6')
+      .attr('x', d => (x(d.x1) - x(d.x0))/2)
+      .attr('text-anchor', 'middle')
+      .text(d => d.length)
+      .attr('fill', 'white')
+  }
+
+  function drawSlider() {
+// 轨迹背景条
+    slider.append('rect')
+      .attr('class', 'drag-bar')
+      .attr('x',  0)
+      .attr('y', 0)
+      .attr('width', width)
+      .attr('height', 10)
+      .attr('fill', '#dcdcdc')
+      .attr('rx', 4)
+      .attr('ry', 4)
+
+
+    slider.append('g', '.track-overlay')
+      .attr('class', 'ticks')
+      .attr('transform', 'translate(0, 18)')
+      .selectAll('text')
+      .data(x.ticks(7))
+      .enter()
+      .append('text')
+      .attr('x', x)
+      .attr('y', 10)
+      .attr('text-anchor', 'middle')
+      .text(d => formatDateIntoDay(d))
+
+//    console.log('^^^^^^^^^')
+//    console.log(x.ticks(7))
+//    console.log(dateArray)
+
+    handle = slider.append('circle', '.track-overlay')
+      .attr('class', 'handle')
+      .attr('r', 9)
+      .attr('cy', 5)
+
+    // 可拖拽区域(时间绑定区域)
+    slider.append('rect')
+      .attr('class', 'drag-layer')
+      .attr('x', 0)
+      .attr('y', -35) // 起始位置是0轴的位置
+      .attr('width', width)
+      .attr('height', 70)
+      .attr('fill', 'transparent')
+      .call(
+        d3.drag().on('start drag', update)
+      )
+  }
+
+  function drawPlot(data) {
+    const locations = plot.selectAll('.location')
+      .data(data, d => d.id)  // 每个id都不一样才能指定唯一
+
+    locations.exit().remove()
+
+    // if filtered dataset has more circles than already existing, transition new ones in
+    locations.enter()
+      .append('circle')
+      .attr('class', 'location')
+      .attr('cx', d => x(d.date))
+      .attr('cy', d => Math.random() * 100)
+      .attr('fill', d => colors(d3.timeDay(d.date)))
+      .attr('stroke', d => colors(d3.timeDay(d.date)))
+      .attr('opacity', 0.7)
+      .attr('r', 5)
+      .transition()
+      .duration(400)
+      .attr('r', 15)
+      .transition()
+      .attr('r', 5)
+
+    // if filtered dataset has less circles than already existing, remove excess
+     locations.exit().remove()
+  }
+
+  function update() {
+    const h = x.invert(d3.event.x)
+    // 改变拖动条条的位置
+    handle.attr('cx', x(h))
+
+//    console.log('--- d3.event.x---', d3.event.x)
+//    console.log(h)
+//    console.log(x(h))
+//
+//    console.log('******************')
+//    console.log()
+
+    // filter data set and redraw plot 删除出当前位置以下的数据
+    const newData = data.filter(d => d.date < h)
+    // 重汇散点图
+    drawPlot(newData)
+
+    // 重新设置颜色, 小于h的还是原来的颜色，大于h的则置灰
+    d3.selectAll('.bar')
+      .attr('fill', d => d.x0 < h ? colors(d.x0) : '#eaeaea')
+  }
+
+</script>
+</body>

@@ -1,0 +1,517 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+
+    <title>reveal.js – The HTML Presentation Framework</title>
+
+    <meta name="description" content="A framework for easily creating beautiful presentations using HTML">
+    <meta name="author" content="Hakim El Hattab">
+
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+    <link rel="stylesheet" href="css/reveal.css">
+    <link rel="stylesheet" href="css/theme/white.css" id="theme">
+
+    <!-- Theme used for syntax highlighting of code -->
+    <link rel="stylesheet" href="lib/css/zenburn.css">
+
+    <!-- Printing and PDF exports -->
+    <script>
+      var link = document.createElement( 'link' );
+      link.rel = 'stylesheet';
+      link.type = 'text/css';
+      link.href = window.location.search.match( /print-pdf/gi ) ? 'css/print/pdf.css' : 'css/print/paper.css';
+      document.getElementsByTagName( 'head' )[0].appendChild( link );
+    </script>
+
+    <!--[if lt IE 9]>
+    <script src="lib/js/html5shiv.js"></script>
+    <![endif]-->
+</head>
+
+<body>
+
+<div class="reveal">
+
+    <!-- Any section element inside of this container is displayed as a slide -->
+    <div class="slides">
+        <section>
+            <section>
+                <h1>图表分享</h1>
+                <h3>混合散点直方图</h3>
+                <p>
+                    <small>Shared by CK</small>
+                </p>
+            </section>
+            <section>
+                <iframe width="1100px" height="900px" align="middle" data-src="./chart/1.html"></iframe>
+            </section>
+            <section>
+                <iframe width="1100px" height="900px" align="middle" data-src="./chart/3.html"></iframe>
+            </section>
+        </section>
+
+        <section>
+            <h2>讲解步骤</h2>
+            <ol>
+                <li>数据结构</li>
+                <li>图表结构</li>
+                <li>绘制前的准备: 配置, 数据预处理, 比例尺等</li>
+                <li>绘制直方图</li>
+                <li>绘制散点图</li>
+                <li>绘制滑动条</li>
+            </ol>
+        </section>
+
+        <section>
+            <h2>数据结构</h2>
+            <pre><code class="hljs" data-trim contenteditable>
+const data = [
+    {id: 1, date: '2017-12-18-09},
+    {id: 2, date: '2017-12-18-11},
+    {id: 3, date: '2017-12-18-15},
+    {id: 4, date: '2017-12-19-22},
+    {id: 5, date: '2017-12-20-12},
+    {id: 6, date: '2017-12-21-13},
+    {id: 7, date: '2017-12-22-14},
+    {id: 8, date: '2017-12-23-15},
+    {id: 9, date: '2017-12-24-16},
+ ]
+					</code></pre>
+        </section>
+
+        <section>
+            <section>
+                <h2>图表结构</h2>
+                <iframe width="1100px" height="900px" align="middle" data-src="./chart/3.html"></iframe>
+            </section>
+            <section>
+                <h3>总体结构</h3>
+                <pre><code class="hljs" data-trim contenteditable>
+                    <svg width="960" height="500">
+                        <g class="histogram"></g> <!-- 直方图部分-->
+
+                        <g class="slider"></g> <!-- 滑动条部分-->
+
+                        <g class="plot"></g>  <!--散点图部分-->
+                    </svg>
+                </code></pre>
+            </section>
+
+           <section>
+               <h3>直方图部分</h3>
+               <pre><code class="hljs" data-trim contenteditable>
+                        <g class="histogram">
+                            <g>
+                                <rect width="70" height="30" fill="#85d1ea"></rect>
+                                <text>66</text>
+                            </g>
+                            <!-- repeat g-->
+                        </g>
+                </code></pre>
+           </section>
+
+            <section>
+                <h3>滑动条部分</h3>
+                <pre class="small"><code class="hljs" data-trim contenteditable>
+                    <g class="slider">
+                        <!-- 背景条-->
+                        <rect class="drag-bar"></rect>
+
+                        <!-- 时间刻度-->
+                        <g class="ticks">
+                            <text x="71" y="10" text-anchor="middle">2月18</text>
+                            <!-- repeat text-->
+                        </g>
+
+                        <!-- 拖动圆点-->
+                        <circle class="handle"></circle>
+
+                        <!-- 事件绑定层-->
+                        <rect class="drag-layer"></rect>
+                    </g>
+                </code></pre>
+            </section>
+
+            <section>
+                   <h3>散点图部分</h3>
+                   <pre><code class="hljs" data-trim contenteditable>
+                        <g class="plot">
+                            <circle cx="138" cy="233" r="5"></circle>
+                             <!-- repeat circle -->
+                        </g>
+                    </code></pre>
+            </section>
+
+        </section>
+
+        <!-- Example of nested vertical slides -->
+        <section>
+            <section>
+                <h2>绘制前的准备: </h2>
+                <p>配置, 数据预处理, 比例尺等</p>
+            </section>
+            <section>
+                <h4>1. 基础配置</h4>
+                <pre><code class="hljs" data-trim contenteditable>
+                        const margin = {top:50, right:50, bottom:50, left:50},
+                            width = 900 - margin.left - margin.right,
+                            height = 500 - margin.top - margin.bottom
+
+                        const histHeight = 100
+                </code></pre>
+            </section>
+            <section>
+                <h4>2.1 数据预处理</h4>
+                <pre><code class="hljs" data-trim contenteditable>
+                        const parseDate = d3.timeParse('%Y-%m-%d-%H')
+
+                        data.forEach(d => {
+                            d.date = parseDate(d.date)
+                        })
+
+                        // d3.timeParse 时间解析
+                        //
+                        // parseDate('2017-12-18-09')
+                        //   =>
+                        // Mon Dec 18 2017 09:00:00 GMT+0800 (CST)
+                </code></pre>
+            </section>
+            <section>
+                <h4>2.2 数据预处理</h4>
+                <pre><code class="hljs" data-trim contenteditable>
+                        const startDate = new Date('2017-12-18 00:00:00')
+                        const endDate = new Date('2017-12-25 00:000:00')
+                        const dateArray = d3.timeDays(startDate, endDate)
+
+                        // d3.range(1, 5) => [1,2,3,4]
+                        // d3.timeDays是d3.timeDay.range的别名
+                        // 类似的还有 d3.timeYears,  d3.timeMonths, d3.timeSaturdays等
+                </code></pre>
+                <img data-src="./4.png" alt="Down arrow">
+            </section>
+            <section>
+                <h4>3.1 颜色比例尺</h4>
+                <pre><code class="hljs" data-trim contenteditable>
+                        const colours = d3.scaleOrdinal()
+                            .domain(dateArray)
+                            .range([
+                                '#409ffb', '#85d1ea', '#65cccb',
+                                '#77debd', '#6ccb74', '#abdf81', '#fbd340'
+                            ]);
+
+                        // d3.scaleOrdinal - 创建一个序数比例尺
+                </code></pre>
+            </section>
+
+            <section>
+                <h4>3.2 x轴时间比例尺</h4>
+                <pre><code class="hljs" data-trim contenteditable>
+                        const x = d3.scaleTime()
+                            .domain([startDate, endDate])
+                            .range([0, width])
+                            .clamp(true)
+
+                    // 1. d3.scaleTime —— 创建时间线性比例尺
+                    // 2. time.clamp —— 启用闭合
+                </code></pre>
+            </section>
+
+            <section>
+                <h4>3.3 直方图生成器</h4>
+                <pre><code class="hljs" data-trim contenteditable>
+                     const histogram = d3.histogram()
+                            .value(d => d.date)
+                            .domain(x.domain())
+                            .thresholds(dateArray)
+
+                    const bins = histogram(data)
+
+                     // d3.histogram 创建一个新的直方图生成器 (本质是一个数据切分器)
+                     // histogram.value 为每个样本指定一个值访问器 (指定你要切分的数据字段)
+                     // histogram.domain 指定可观测值的间隔 (指定数据范围)
+                     // histogram.thresholds 指定值划分成不同箱的方法 (指定切分的方法或者数组)
+                </code></pre>
+            </section>
+
+            <section>
+                <pre><code class="hljs" data-trim contenteditable>
+                    const bins = histogram(data)
+                </code></pre>
+                <img data-src="./1.png" alt="Down arrow">
+            </section>
+
+            <section>
+                <h4>3.4 Y轴线性比例尺</h4>
+                <pre><code class="hljs" data-trim contenteditable>
+                    const y = d3.scaleLinear()
+                            .domain([0, d3.max(bins, d => d.length)])
+                            .range([0, histHeight])
+
+                    // d3.scaleLinear - 创建定量线性比例尺
+                    // d3.max d3.max - 计算数组中的最大值
+                </code></pre>
+                <img data-src="./5.png" alt="Down arrow">
+            </section>
+
+            <section>
+                <h4>3.5 绘制容器g</h4>
+                <pre class="small"><code class="hljs" data-trim contenteditable>
+                      // 直方图容器g
+                      const hist = svg.append('g')
+                        .attr('class', 'histogram')
+                        .attr('transform', `translate(${margin.left}, ${margin.top})`)
+
+                      // 滑动条容器g
+                      const slider = svg.append('g')
+                        .attr('class', 'slider')
+                        .attr('transform', `translate(${margin.left}, ${margin.top + histHeight})`)
+
+                     // 散点图容器g
+                      const plot = svg.append('g')
+                        .attr('class', 'plot')
+                        .attr('transform', `translate(${margin.left}, ${margin.top + histHeight + 50})`)
+                </code></pre>
+            </section>
+        </section>
+
+        <section>
+            <section>
+                <h2>绘制直方图</h2>
+                <pre class="small"><code class="hljs" data-trim contenteditable>
+                    // y轴比例尺
+                    const y = d3.scaleLinear()
+                       .domain([0, d3.max(bins, d => d.length)])
+                       .range([0, histHeight])
+
+                    const bar = hist.selectAll('.bar')
+                      .data(bins).enter()
+                      .append('g')
+                      .attr('class', 'bar')
+                      .attr('transform', d => `translate(${x(d.x0)}, ${histHeight - y(d.length)})`)
+
+                    bar.append('rect')
+                      .attr('class', 'bar')
+                      .attr('width', d => x(d.x1) - x(d.x0) - 1) // 1是柱子间的间隔
+                      .attr('height', d => y(d.length))
+                      .attr('fill', d => colours(d.x0))
+
+                    bar.append('text')
+                      .attr('y', '6')
+                      .attr('x', d => (x(d.x1) - x(d.x0))/2)
+                      .attr('text-anchor', 'middle')
+                      .text(d => d.length)
+                </code></pre>
+            </section>
+
+            <section>
+                <img data-src="./3.png" alt="Down arrow">
+            </section>
+        </section>
+
+
+        <section>
+            <section>
+                <h2>绘制散点图</h2>
+                <pre class="small"><code class="hljs" data-trim contenteditable>
+                    function drawPlot(data) {
+                        const locations = plot.selectAll('.location')
+                          .data(data, d => d.id)
+
+                        locations.enter()
+                          .append('circle')
+                          .attr('class', 'location')
+                          .attr('cx', d => x(d.date))
+                          .attr('cy', d => Math.random() * 100)
+                          .attr('fill', d => colors(d3.timeDay(d.date)))
+                          .attr('stroke', d => colors(d3.timeDay(d.date)))
+                          .attr('opacity', 0.7)
+                          .attr('r', 5)
+                          .transition()
+                          .duration(400)
+                          .attr('r', 15)
+                          .transition()
+                          .attr('r', 5)
+
+                        locations.exit().remove()
+                    }
+            </code></pre>
+            </section>
+
+            <section>
+                <h2>关于Update、Enter、Exit</h2>
+                <ul>
+                    <li> 有数据，而没有足够图形元素的时候，使用enter方法可以添加足够的元素</li>
+                    <li> 有元素与数据对应的部分称为 Update </li>
+                    <li> 元素存在但是没有数据绑定的部分被称为 Exit </li>
+                    <li> exit 部分的处理办法一般是：删除元素</li>
+                </ul>
+            </section>
+
+            <section>
+                <iframe width="1100px" height="900px" align="middle" data-src="./chart/4.html"></iframe>
+            </section>
+        </section>
+
+
+        <section>
+            <section>
+                <h2>绘制滚动条部分</h2>
+                <pre class="small"><code class="hljs" data-trim contenteditable>
+                    function drawSlider() {
+                        // 轨迹背景条
+                        slider.append('rect')
+                          .attr('class', 'drag-bar')
+                          .attr('x', 0)
+                          .attr('y', 0)
+                          .attr('width', width)
+                          .attr('height', 10)
+                          .attr('fill', '#dcdcdc')
+                          .attr('rx', 4)
+                          .attr('ry', 4)
+
+                        // 绘制日期刻度
+                        slider.append('g', '.track-overlay')
+                          .attr('class', 'ticks')
+                          .attr('transform', 'translate(0, 18)')
+                          .selectAll('text')
+                          .data(x.ticks(7))
+                          .enter()
+                          .append('text')
+                          .attr('x', x)
+                          .attr('y', 10)
+                          .attr('text-anchor', 'middle')
+                          .text(d => formatDateIntoDay(d))
+
+                        // 绘制拖动点
+                        handle = slider.append('circle', '.track-overlay')
+                          .attr('class', 'handle')
+                          .attr('r', 9)
+                          .attr('cy', 5)
+
+                        // 可拖拽区域(时间绑定区域)
+                        slider.append('rect')
+                          .attr('class', 'drag-layer')
+                          .attr('x', 0)
+                          .attr('y', -35)
+                          .attr('width', width)
+                          .attr('height', 70)
+                          .attr('fill', 'transparent')
+                          .call(
+                            d3.drag().on('start drag', update)
+                          )
+                    }
+            </code></pre>
+            </section>
+
+            <section>
+                <h2>绑定拖拽事件</h2>
+                <pre><code class="hljs" data-trim contenteditable>
+                        slider.append('rect')
+                          .attr('class', 'drag-layer')
+                          .attr('x', 0)
+                          .attr('y', -35) // 起始位置是0轴的位置
+                          .attr('width', width)
+                          .attr('height', 70)
+                          .attr('fill', 'transparent')
+                          .call(
+                            d3.drag().on('start drag', update)
+                          )
+                </code></pre>
+                <ul>
+                    <li> d3.drag - 创建一个拖曳行为</li>
+                    <li>  drag.on - 监听拖曳事件 </li>
+                    <li> start - on mousedown or touchstart</li>
+                    <li> drag - on mousemove or touchmove</li>
+                    <li> end - on mouseup, touchend or touchcancel</li>
+                </ul>
+            </section>
+
+            <section>
+                <h2>更新数据</h2>
+                <pre class="small"><code class="hljs" data-trim contenteditable>
+                        function update() {
+                            // 获取位置转换的日期时间信息
+                            const h = x.invert(d3.event.x)
+
+                            // 改变拖动条的位置
+                            handle.attr('cx', x(h))
+
+                            // 刷选出当前位置所表示时间之前的数据
+                            const newData = data.filter(d => d.date < h)
+
+                            // 重汇散点图
+                            drawPlot(newData)
+
+                            // 重新设置颜色, 小于h的还是原来的颜色，大于h的则置灰
+                            d3.selectAll('.bar')
+                              .attr('fill', d => d.x0 < h ? colors(d.x0) : '#eaeaea')
+                        }
+                </code></pre>
+            </section>
+
+            <section>
+                <iframe width="1100px" height="300px" align="middle" data-src="./chart/3.html"></iframe>
+            </section>
+        </section>
+
+
+        <section>
+            <section>
+                <h1>What's more </h1>
+            </section>
+            <section>
+                <iframe width="1100px" height="500px" align="middle" data-src="./chart/5.html"></iframe>
+            </section>
+            <section>
+                <iframe width="1100px" height="500px" align="middle" data-src="./chart/6.html"></iframe>
+            </section>
+            <section>
+                <iframe width="1100px" height="500px" align="middle" data-src="./chart/7.html"></iframe>
+            </section>
+        </section>
+
+
+
+        <section>
+            <h1>谢谢观看</h1>
+        </section>
+    </div>
+
+</div>
+
+<script src="lib/js/head.min.js"></script>
+<script src="js/reveal.js"></script>
+
+<script>
+
+  // More info https://github.com/hakimel/reveal.js#configuration
+  Reveal.initialize({
+    controls: true,
+    progress: true,
+    history: true,
+    center: true,
+
+    transition: 'slide', // none/fade/slide/convex/concave/zoom
+
+    // More info https://github.com/hakimel/reveal.js#dependencies
+    dependencies: [
+      { src: 'lib/js/classList.js', condition: function() { return !document.body.classList; } },
+      { src: 'plugin/markdown/marked.js', condition: function() { return !!document.querySelector( '[data-markdown]' ); } },
+      { src: 'plugin/markdown/markdown.js', condition: function() { return !!document.querySelector( '[data-markdown]' ); } },
+      { src: 'plugin/highlight/highlight.js', async: true, callback: function() { hljs.initHighlightingOnLoad(); } },
+      { src: 'plugin/search/search.js', async: true },
+      { src: 'plugin/zoom-js/zoom.js', async: true },
+      { src: 'plugin/notes/notes.js', async: true }
+    ]
+  });
+
+</script>
+
+</body>
+</html>

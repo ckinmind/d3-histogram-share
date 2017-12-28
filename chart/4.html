@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<head>
+    <meta charset='utf-8'>
+    <style>
+        body {
+            font-family:'avenir next', Arial, sans-serif;
+            font-size: 12px;
+            color: #696969;
+        }
+
+        #vis{
+            margin: 0 auto;
+            width: 900px;
+            height: 500px;
+        }
+
+        .ticks {
+            font-size: 10px;
+        }
+
+        .track-overlay {
+            pointer-events: stroke;
+            stroke-width: 50px;
+            stroke: transparent;
+            cursor: crosshair;
+        }
+
+        .drag-layer {
+            cursor: crosshair
+        }
+
+        .handle {
+            fill: #fff;
+            stroke: #000;
+            stroke-opacity: 0.5;
+            stroke-width: 1.25px;
+        }
+    </style>
+</head>
+
+<body>
+<div id='vis'></div>
+<button onclick="first()">第一次点击</button>
+<button onclick="second()">第二次点击</button>
+<script src='./d3.v4.min.js'></script>
+<script>
+  const margin = {top:50, right:50, bottom:50, left:50},
+    width = 900 - margin.left - margin.right,
+    height = 500 - margin.top - margin.bottom
+
+  const histHeight = 100
+
+  const data = [
+    {id: 'a', count: 1},
+    {id: 'b', count: 2},
+    {id: 'c', count: 3},
+    {id: 'd', count: 4},
+    {id: 'e', count: 5},
+    {id: 'f', count: 6},
+  ]
+
+  const svg = d3.select('#vis')
+    .append('svg')
+    .attr('width', width + margin.left + margin.right)
+    .attr('height', height + margin.top + margin.bottom)
+
+
+  // 散点图容器g
+  const plot = svg.append('g')
+    .attr('class', 'plot')
+    .attr('transform', `translate(${margin.left}, ${margin.top + histHeight + 50})`)
+  //    .attr('transform', `translate(${margin.left}, ${margin.top + 100})`)
+
+
+    // y轴比例尺
+    const x = d3.scaleLinear()
+      .domain([0, 6])
+    .range([0, width])
+
+
+  function drawPlot(data) {
+    const locations = plot.selectAll('.location')
+        .data(data, d => d.id)
+
+    console.log('location.enter()',locations.enter())
+    console.log(locations.enter().nodes())
+
+    locations.enter()
+      .append('circle')
+      .attr('class', 'location')
+      .attr('cx', d => x(d.count))
+      .attr('opacity', 0.7)
+      .attr('r', 25)
+      .transition()
+      .duration(400)
+      .attr('r', 45)
+      .transition()
+      .attr('r', 25)
+
+    locations.exit().attr('fill', 'red')
+    console.log('locations.exit()', locations.exit())
+    console.log(locations.exit().nodes())
+    console.log('locations', locations)
+    console.log(locations.nodes())
+  }
+
+
+  function first() {
+    drawPlot(data) // 绘制散点部分
+  }
+
+  function second() {
+    const h = new Date('2017-12-21')
+    const newData = data.filter(d => d.count < 4)
+    drawPlot(newData) // 绘制散点部分
+  }
+
+</script>
+</body>
