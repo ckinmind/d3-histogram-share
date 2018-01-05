@@ -3,7 +3,7 @@
 
 
 # mobx-share
-![mobx-share](https://raw.githubusercontent.com/ckinmind/mobx-share/master/src/image/demo.gif)
+![d3-histogram-share](https://raw.githubusercontent.com/ckinmind/d3-histogram-share/master/demo.gif)
 一个关于d3中混合直方散点图的分享, 在线访问 [https://ckinmind.github.io/d3-histogram-share](https://ckinmind.github.io/d3-histogram-share/#/)
 
 
