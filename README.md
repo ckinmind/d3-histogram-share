@@ -1,5 +1,4 @@
 # d3-histogram-share
-<<<<<<< HEAD
 关于d3中的直方图(混合散点图)分享的ppt
 
 
@@ -28,6 +27,3 @@
 ```
 
 ## 内容说明
-=======
-关于d3中的直方图(混合散点图)分享的ppt, [在线访问](https://ckinmind.github.io/d3-histogram-share/#/)
->>>>>>> f770cca09542b49e41516be09d4c5ee985ca3e1e
