@@ -30,3 +30,5 @@
 - 改进型1：[histogram——用刷子brush实现拖拽和范围选择](https://bl.ocks.org/ckinmind/c0da1e7f2ab093cc25d09d57efa3b750)
 - 改进型2：[histogram——力图实现散点不重叠(固定圆半径)](https://bl.ocks.org/ckinmind/3d5d17b992e3f4c7f3ae1b134bf1902f)
 - 改进型3：[histogram——力图实现散点不重叠(不固定圆半径)](https://bl.ocks.org/ckinmind/f87a5aab529f65afc32b2e7dbe6ddac4)
+
+## 知识点
