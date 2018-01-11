@@ -32,3 +32,8 @@
 - 改进型3：[histogram——力图实现散点不重叠(不固定圆半径)](https://bl.ocks.org/ckinmind/f87a5aab529f65afc32b2e7dbe6ddac4)
 
 ## 知识点
+- d3.forceSimulation 创建一个力模拟
+- d3.forceX 创建x-定位力
+- d3.forceY 创建y-定位力
+- d3.forceCollide 创建一个圆碰撞力
+- d3.forceManyBody 创建多体力
