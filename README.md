@@ -23,6 +23,10 @@
 > (直接打开index.html)
 ```
 
+## 操作说明
+- 方向键切换ppt
+- ESC键查看全局概览视图
+
 ## 资源地址
 
 - 原图地址：[Date slider - histogram legend](https://bl.ocks.org/officeofjane/f132634f67b114815ba686484f9f7a77/c838775c9d23ff565a3f3a90869ae8aca63f2d84)
